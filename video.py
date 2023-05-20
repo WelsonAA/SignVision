@@ -45,7 +45,6 @@ def startTranslantion(x):
             ret, frame = cap.read()
             if ret == True:
                 # Display the resulting frame
-
                 cv2.imshow(f'{arr[i]}', frame)
                 if cv2.waitKey(25) & 0xFF == ord('q'):
                     break
