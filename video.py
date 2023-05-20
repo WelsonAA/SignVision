@@ -3,24 +3,12 @@ import time
 
 import cv2
 import tkinter as tk
-def submit_text(text_entry):
-    entered_text = text_entry.get()
-    return entered_text
 
-def main(root):
-    frame = tk.Frame(root)
-    frame.pack(padx=10, pady=10)
 
-    label = tk.Label(frame, text="Enter your text:")
-    label.pack()
-
-    text_entry = tk.Entry(frame)
-    text_entry.pack(pady=5)
-
-    submit_button = tk.Button(frame, text="Submit", command=submit_text(text_entry))
-    submit_button.pack(pady=5)
-
-    x=str(input())
+def main(x):
+    print ("hi")
+    print(x)
+    str(x)
     arr=x.split()
 
     print(arr)
