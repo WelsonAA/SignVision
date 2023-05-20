@@ -2,10 +2,28 @@
 import time
 
 import cv2
-import tkinter as tk
+from tkinter import*
 
 
-def main(x):
+def main():
+    top = Toplevel()
+    top.geometry("400x400")
+    top.title("Text to Sign Live Translation")
+    text = Text(top, width=40, height=10,)
+    text.pack(side=LEFT)
+
+    def translate_text():
+        input_text = text.get("1.0", END)
+        startTranslantion(input_text)
+
+        # Call your translation function here\
+    translateButton = Button(top, text="Translate", width=30, height=5, font=("Arial", 20),
+                             command=translate_text)
+    translateButton.pack(side=RIGHT)
+
+
+
+def startTranslantion(x):
     print ("hi")
     print(x)
     str(x)
@@ -27,9 +45,8 @@ def main(x):
             ret, frame = cap.read()
             if ret == True:
                 # Display the resulting frame
-                cv2.imshow(f'{arr[i]}', frame)
 
-                # Press Q on keyboard to exit
+                cv2.imshow(f'{arr[i]}', frame)
                 if cv2.waitKey(25) & 0xFF == ord('q'):
                     break
 
