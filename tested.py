@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 cap = cv2.VideoCapture(0)
 detector = HandDetector(maxHands=1)
-classifier = Classifier("Model/labels.txt")
+classifier = Classifier("Model/labels.txt", "Model/labels.txt")
 model_path = "Model/keras_model.h5"
 model = load_model(model_path)
 print(model.summary())
