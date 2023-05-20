@@ -32,21 +32,9 @@ def create_window():
 
 
 def open_text_to_sign_window():
-    top = Toplevel()
-    top.geometry("400x400")
-    top.title("Text to Sign Live Translation")
-    text=Text(top,width=40,height=10)
-    text.pack(side=LEFT)
-    translateButton = Button(top, text="Translate", width=30, height=5, font=("Arial", 20),
-                             command=video.main(text.get(1.0,END)))
-    translateButton.pack(side=RIGHT)
-    print(text.get(1.0,END))
-    L1 = Label(top,text="text is" +text.get(1.0,END))
-    L1.pack(side=LEFT)
+    video.main();
 
 
-def startTranslation(text):
-    video.main(text)
 
 
 
