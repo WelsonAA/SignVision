@@ -32,7 +32,7 @@ def create_window():
 
 
 def open_text_to_sign_window():
-    video.main();
+    video.main()
 
 
 

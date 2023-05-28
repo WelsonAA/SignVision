@@ -2,7 +2,7 @@ import cv2
 from cvzone.HandTrackingModule import HandDetector
 from cvzone.ClassificationModule import Classifier
 import numpy as np
-from sklearn.metrics import multilabel_confusion_matrix
+from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 import math
 import os
@@ -10,11 +10,42 @@ from keras.models import load_model
 import matplotlib.pyplot as plt
 
 
+def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion Matrix', cmap=plt.cm.Blues):
+    """
+    This function plots a confusion matrix.
+    cm: Confusion matrix (2D array)
+    classes: List of class names
+    normalize: Whether to normalize the matrix or not (default=False)
+    title: Title of the plot (default='Confusion Matrix')
+    cmap: Color map (default=plt.cm.Blues)
+    """
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+
+    for i, j in np.ndindex(cm.shape):
+        plt.text(j, i, format(cm[i, j], fmt),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.tight_layout()
+
 def main():
     cap = cv2.VideoCapture(0)
     detector = HandDetector(maxHands=1)
-    classifier = Classifier("E:\\ASU6\\Artificial Intelligence CSE472\\ActionDetectionforSignLanguage-main\\ActionDetectionforSignLanguage-main\\Model\\keras_model.h5", "E:\\ASU6\\Artificial Intelligence CSE472\\ActionDetectionforSignLanguage-main\\ActionDetectionforSignLanguage-main\\Model\\labels.txt")
-    model_path = "E:\\ASU6\\Artificial Intelligence CSE472\\ActionDetectionforSignLanguage-main\\ActionDetectionforSignLanguage-main\\Model\\keras_model.h5"
+    classifier = Classifier("Model/keras_model.h5", "Model/labels.txt")
+    model_path = "Model/keras_model.h5"
     model = load_model(model_path)
     print(model.summary())
     offset = 20
@@ -26,7 +57,7 @@ def main():
     count_same_frame = 0
 
     labels = ["A", "B", "Bestfriend", "Boy", "C", "D", "E", "F", "G", "Girl", "H", "Hello", "I", "i love you", "J", "K",
-              "L", "M", "N", "O", "P", "Q", "R", "S", "Space", "T", "Thanks", "U", "V", "W", "X", "Y", "Yes", "You", "Z"]
+              "L", "M", "N", "O", "P", "Q", "R", "S", " ", "T", "Thanks", "U", "V", "W", "X", "Y", "Yes", "You", "Z"]
     predicted_labels = []
     while True:
         success, img = cap.read()
@@ -36,20 +67,25 @@ def main():
 
         if hands:
             hand = hands[0]
-            x, y, w, h = hand['bbox']
+            x, y, w, h = hand['bbox']  ##bounding box
 
             imgWhite = np.ones((imgSize, imgSize, 3), np.uint8) * 255
+            # np.unit8 from 0 to 255 *255 because the pixels are from o to 1
             imgCrop = img[y - offset:y + h + offset, x - offset:x + w + offset]
 
             imgCropShape = imgCrop.shape
 
             aspectRatio = h / w
-
+            # to centre image weihght , according to which is bigger
+            # height or width
             if aspectRatio > 1:
                 k = imgSize / h
                 wCal = math.ceil(k * w)
-                imgResize = cv2.resize(imgCrop, (wCal, imgSize))
-                imgResizeShape = imgResize.shape
+                if imgCrop.size != 0:
+                    imgResize = cv2.resize(imgCrop, (wCal, imgSize))
+                    imgResizeShape = imgResize.shape
+                else:
+                    continue
                 wGap = math.ceil((imgSize - wCal) / 2)
                 imgWhite[:, wGap:wCal + wGap] = imgResize
                 prediction, index = classifier.getPrediction(imgWhite, draw=False)
@@ -57,8 +93,11 @@ def main():
             else:
                 k = imgSize / w
                 hCal = math.ceil(k * h)
-                imgResize = cv2.resize(imgCrop, (imgSize, hCal))
-                imgResizeShape = imgResize.shape
+                if imgCrop.size != 0:
+                    imgResize = cv2.resize(imgCrop, (imgSize, hCal))
+                    imgResizeShape = imgResize.shape
+                else:
+                    continue
                 hGap = math.ceil((imgSize - hCal) / 2)
                 imgWhite[hGap:hCal + hGap, :] = imgResize
                 prediction, index = classifier.getPrediction(imgWhite, draw=False)
@@ -96,12 +135,14 @@ def main():
         # cv2.imshow("Image", imgOutput)
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
-        # true_labels = np.argmax(labels, axis=1)
+    cap.release()
+    cv2.destroyAllWindows()
+    # true_labels = np.argmax(labels, axis=1)
     labels_test = labels[:len(predicted_labels)]
     print("predicted_labels ", predicted_labels)
     print("labels_test ", labels_test)
 
-    cm = multilabel_confusion_matrix(labels_test, predicted_labels)
+    cm = confusion_matrix(labels_test, predicted_labels)
     print("Confusion Matrix:")
     print(cm)
 
@@ -116,14 +157,7 @@ def main():
     print("Accuracy Score Report:")
     print(report)
     # Plot the confusion matrix
+    plot_confusion_matrix(cm, classes=labels_test, normalize=False, title='Confusion Matrix')
 
-    fig, axes = plt.subplots(nrows=len(labels_test), ncols=1, figsize=(5, 5 * len(labels_test)))
-
-    for i, ax in enumerate(axes):
-        ax.matshow(cm[i], cmap=plt.cm.Blues)
-        ax.set_title(f'Confusion Matrix for Label {labels_test[i]}')
-        ax.set_xlabel('Predicted')
-        ax.set_ylabel('True')
-
-    plt.tight_layout()
+    # Show the plot
     plt.show()
